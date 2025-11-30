@@ -1,0 +1,32 @@
+---
+- name: RPC get-interface-information
+  junos_rpc:
+    rpc: get-interface-information
+    args:
+      terse: True
+    output: json
+  register: result
+
+- name: Get Host Links
+  set_fact:
+    host_links: |-
+      {%- set hostLinks = [] -%}
+      {%- set physicalInterfaces = result.output["interface-information"][0]["physical-interface"] -%}
+      {%- for interface in physicalInterfaces -%}
+        {%- set logicalInterface = interface["logical-interface"] -%}
+        {%- set name = interface["name"][0]["data"] -%}
+        {%- if logicalInterface is defined and name != "em0" -%}
+          {%- set addressFamily = logicalInterface[0]["address-family"] -%}
+          {%- if addressFamily is defined -%}
+            {%- set addressFamilyName = addressFamily[0]["address-family-name"][0]["data"] -%}
+            {%- if addressFamilyName == "eth-switch" -%}
+              {%- set temp = hostLinks.append(name) -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{- hostLinks -}}
+
+- name: Print Host Links
+  debug:
+    var: host_links

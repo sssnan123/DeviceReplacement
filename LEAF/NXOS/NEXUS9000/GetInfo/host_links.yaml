@@ -1,0 +1,13 @@
+---
+- name: Run Command "show interface status | include connected\s1"
+  nxos_command:
+    commands: show interface status | include connected\s1
+  register: result
+
+- name: Get Host Links
+  set_fact:
+    host_links: "{{ (result.stdout[0] | parse_cli_textfsm('./textfsm/extract_ports.textfsm'))[0].ports }}"
+
+- name: Print Host Links
+  debug:
+    var: host_links

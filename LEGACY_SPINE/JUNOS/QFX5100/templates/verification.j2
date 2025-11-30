@@ -1,0 +1,15 @@
++--------------------------------------------------------------------------------------------------------------+
+### VERIFICATION PLAN: Device Replacement: {{ inventory_hostname }} {{ device_model }} ###
++--------------------------------------------------------------------------------------------------------------+
+
+
+
+1) Global Checks
+
+	# Perform mandatory post-checks to determine device health and status after changes have been made.
+
+	{% include "./temp/global_checks.txt" %}
+
+2) Check traffic
+
+	{% include "./temp/traffic.txt" %}

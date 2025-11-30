@@ -1,0 +1,9 @@
+{{- "# Traffic:\n" -}}
+{{- "\n" -}}
+{{- ("https://console.sherlock.io/d/zNLv2bKWz/switch-drill-down?var-Name=" + inventory_hostname + "&orgId=1&refresh=5m\n") | indent(8, True, False) -}}
+{%- for uplinkDevice in uplinks -%}
+    {%- set deviceName = uplinkDevice.deviceName -%}
+    {{- "\n" -}}
+    {{- ("https://console.sherlock.io/d/zNLv2bKWz/switch-drill-down?var-Name=" + deviceName + "&orgId=1&refresh=5m\n") | indent(8, True, False) -}}
+{%- endfor -%}
+{{- "\n" -}}

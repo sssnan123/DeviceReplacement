@@ -1,0 +1,20 @@
+---
+- name: Generate Disabling Uplinks Procedure
+  template:
+    src: disabling_uplinks.j2
+    dest: ./temp/disabling_uplinks.txt
+
+- name: Generate Enabling Uplinks Procedure
+  template:
+    src: enabling_uplinks.j2
+    dest: ./temp/enabling_uplinks.txt
+
+- name: Generate Enabling One Uplink Procedure
+  template:
+    src: enabling_one_uplink.j2
+    dest: ./temp/enabling_one_uplink.txt
+
+- name: Generate Disabling One Uplink Procedure
+  template:
+    src: disabling_one_uplink.j2
+    dest: ./temp/disabling_one_uplink.txt

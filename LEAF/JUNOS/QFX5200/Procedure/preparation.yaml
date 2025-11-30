@@ -1,0 +1,15 @@
+---
+- name: Generate Backup Configuration Procedure
+  template:
+    src: backup_configuration.j2
+    dest: ./temp/backup_configuration.txt
+
+- name: Generate Traffic Procedure
+  template:
+    src: traffic.j2
+    dest: ./temp/traffic.txt
+
+- name: Generate Global Checks Procedure
+  template:
+    src: global_checks.j2
+    dest: ./temp/global_checks.txt

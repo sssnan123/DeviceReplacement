@@ -1,0 +1,124 @@
++-------------------------------------------------------------------------------------------------------------+
+### Rollback Plan: Device Replacement: {{ inventory_hostname }} {{ device_model }} ###
++-------------------------------------------------------------------------------------------------------------+
+
+
+
+1) Preparation Steps:
+
+1.1) Put device {{ inventory_hostname }} in maintenance mode using:
+
+	https://nseui.muse.vip.ebay.com/device-maintenance
+
+
+
+2) Device cost-out for {{ inventory_hostname }}
+
+2.1) BGP cost-out for {{ inventory_hostname }}
+
+	# On {{ inventory_hostname }}:
+
+	ping {{ chg_number }}
+
+	{% include "./temp/costing_out.txt" %}
+
+2.2) Verify traffic has stopped on {{ inventory_hostname }}
+
+	# Traffic:
+
+	https://console.sherlock.io/d/zNLv2bKWz/switch-drill-down?var-Name={{ inventory_hostname }}&orgId=1&refresh=5m
+
+	# On {{ inventory_hostname }}:
+
+	show interfaces | match "Physical|rate"
+
+2.3) Back up the configuration of the device
+
+	# Back up the configuration of the device
+
+	https://nseui.muse.vip.ebay.com/config-backup
+
+	Enter device name: {{ inventory_hostname }} > Press Initiate Backup button
+
+2.4) Shut down uplinks from upstream
+
+	{% include "./temp/disabling_uplinks.txt" %}
+
+
+
+3) Device Replacement for {{ inventory_hostname }}
+
+	Inform TDO that you are about to replace {{ inventory_hostname }}
+
+	# Ask SS to confirm the model of the e-spare switch and it should be the same as the old failed one.
+	# Ask SS to take picture of the e-spare switch and send it on slack to confirm the model of the e-spare switch.
+	# Ask SS to disconnect all the links and replace the switch.
+
+	# Once Site Services replaces the switch and has all the uplinks connected, turn one uplink back up.
+
+	# If e-spare fails as well then leave it as is and contact the vendor else continue with the plan.
+
+
+
+4) Get the device config and OS
+
+4.1) Unshut one uplink from upstream
+
+	{% include "./temp/enabling_one_uplink.txt" %}
+
+	# At this point please monitor the e-spare switch through console to see the auto-build. Wait for the auto build to finish and then move to the next step.
+
+	# If auto-build doesn't work, please follow the below link:
+
+	https://wiki.vip.corp.ebay.com/display/IRT/Device+Manual+Build
+
+4.2) Disable that one uplink and verify the health of the switch
+
+	{% include "./temp/disabling_one_uplink.txt" %}
+
+	# Monitor the health of the switch
+
+	# On {{ inventory_hostname }}:
+
+	show version invoke-on all-routing-engines | no-more
+	show log messages | last 100 | no-more
+	show chassis alarms | no-more
+	show chassis fpc | no-more
+	show chassis environment | no-more
+	show configuration | display set | no-more
+
+
+
+5) Device cost-in for {{ inventory_hostname }}
+
+5.1) Unshut uplinks from upstream
+
+	{% include "./temp/enabling_uplinks.txt" %}
+
+5.2) BGP cost-in for {{ inventory_hostname }}
+
+	# On {{ inventory_hostname }}:
+
+	{% include "./temp/costing_in.txt" %}
+
+5.3) Verify traffic has resumed on {{ inventory_hostname }}
+
+	# Traffic:
+
+	https://console.sherlock.io/d/zNLv2bKWz/switch-drill-down?var-Name={{ inventory_hostname }}&orgId=1&refresh=5m
+
+	# On {{ inventory_hostname }}:
+
+	show interfaces | match "Physical|rate"
+
+5.4) Put device {{ inventory_hostname }} back to production mode using:
+
+	https://nseui.muse.vip.ebay.com/device-maintenance
+
+
+
+6) Global Checks
+
+	# Perform mandatory post-checks to determine device health and status after changes have been made.
+
+	{% include "./temp/global_checks.txt" %}

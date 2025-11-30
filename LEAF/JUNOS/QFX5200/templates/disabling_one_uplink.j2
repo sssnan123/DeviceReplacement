@@ -1,0 +1,36 @@
+{%- set uplink = uplinksGroup.uplinks[0] -%}
+{%- set deviceName = uplink.deviceName -%}
+{%- set interface = uplink.interfacesList[0] -%}
+{%- if "xe" in interface or "et" in interface -%}
+  {{- "# On " + deviceName + ":\n" -}}
+  {{- "\n" -}}
+  {{- "configure exclusive\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("set interfaces " + interface + " disable\n") | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- "show | compare\n" | indent(8, True, False) -}}
+  {{- "commit and-quit\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- "# Verify the interface status\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("show interfaces " + interface + ' extensive | match "last|local|phy|desc|error" | no-more\n') | indent(8, True, False) -}}
+{%- else -%}
+  {{- ("# On " + deviceName + ":\n") -}}
+  {{- "\n" -}}
+  {{- "configure terminal\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("interface Ethernet" + interface + "\n") | indent(8, True, False) -}}
+  {{- "shutdown\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- "end\n" | indent(8, True, False) -}}
+  {{- "write memory\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- "# Verify the interface status\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+  {{- "\n" -}}
+  {{- ("show interfaces Ethernet" + interface + "\n") | indent(8, True, False) -}}
+{%- endif -%}
+{{- "\n" -}}

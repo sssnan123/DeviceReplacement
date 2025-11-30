@@ -1,0 +1,36 @@
+---
+- name: Run Command "show configuration | display json"
+  junos_command:
+    commands: show configuration
+    format: json
+  register: result
+
+- name: Get Output
+  set_fact:
+    bgp_groups: |-
+      {%- set bgpGroupConfig = result.stdout[0].configuration.protocols.bgp.group -%}
+      {%- set bgpGroups = [] -%}
+      {%- set hasApplyGroups = namespace(status=false) -%}
+      {%- for key in bgpGroupConfig[0].keys() -%}
+        {%- if key == "apply-groups" -%}
+          {%- set hasApplyGroups.status = true -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- for bgpGroup in bgpGroupConfig -%}
+        {%- set groupName = bgpGroup["apply-groups"][0] -%}
+        {%- set peerAS = groupName.split("AS")[1].split("_")[0] -%}
+        {%- set members = [] -%}
+        {%- for neighbor in bgpGroup["neighbor"] -%}
+          {%- set description = neighbor["description"] -%}
+          {%- set name = neighbor["name"] -%}
+          {%- set member = {"description": description, "name": name} -%}
+          {%- set temp = members.append(member) -%}
+        {%- endfor -%}
+        {%- set group = {"groupName": groupName, "members": members, "peerAS": peerAS} -%}
+        {%- set temp = bgpGroups.append(group) -%}
+      {%- endfor -%}
+      {{- bgpGroups -}}
+
+- name: Print BGP Groups
+  debug:
+    var: bgp_groups

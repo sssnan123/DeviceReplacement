@@ -1,0 +1,13 @@
+---
+- name: Run Command "show ip bgp peer-group"
+  eos_command:
+    commands: show ip bgp peer-group
+  register: result
+
+- name: Get Output
+  set_fact:
+    bgp_peer_groups: "{{ result.stdout[0] | parse_cli_textfsm('./textfsm/bgp_peer_groups.textfsm') }}"
+
+- name: Print BGP Peer Groups
+  debug:
+    var: bgp_peer_groups

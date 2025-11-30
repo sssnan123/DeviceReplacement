@@ -1,0 +1,22 @@
+{{- "configure exclusive\n" -}}
+{{- "\n" -}}
+{{- "show | compare\n" | indent(8, True, False) -}}
+{{- "\n" -}}
+{{- "# Check for any uncommitted changes\n" | indent(8, True, False) -}}
+{{- "\n" -}}
+{{- ("commit comment post-" + chg_number + "\n") | indent(8, True, False) -}}
+{{- "\n" -}}
+{%- for hostLink in host_links -%}
+  {%- set command = "delete interfaces " + hostLink + " disable\n" -%}
+  {{- command | indent(8, True, False) -}}
+{%- endfor -%}
+{{- "\n" -}}
+{{- "show | compare\n" | indent(8, True, False) -}}
+{{- "commit and-quit\n" | indent(8, True, False) -}}
+{{- "\n" -}}
+{{- ("# Verify host links status\n") | indent(8, True, False) -}}
+{{- "\n" -}}
+{%- for hostLink in host_links -%}
+  {{- ('show interfaces ' + hostLink  + ' extensive | match "last|local|phy|desc|error" | no-more\n') | indent(8, True, False) -}}
+  {{- "\n" -}}
+{%- endfor -%}

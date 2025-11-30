@@ -1,0 +1,10 @@
+---
+- name: Generate Disabling Host Links Procedure
+  template:
+    src: disabling_host_links.j2
+    dest: ./temp/disabling_host_links.txt
+
+- name: Generate Enabling Host Links Procedure
+  template:
+    src: enabling_host_links.j2
+    dest: ./temp/enabling_host_links.txt

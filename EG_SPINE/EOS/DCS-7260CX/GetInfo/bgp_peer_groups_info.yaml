@@ -1,0 +1,57 @@
+---
+- name: Get BGP Process
+  import_tasks: bgp_process.yaml
+
+- name: Get Route Maps
+  import_tasks: route_maps.yaml
+
+- name: Run Command "show running-config | include 'IP Address' remote-as"
+  eos_command:
+    commands: "{{ 'show running-config | include ' + item.members[0] + ' remote-as'}}"
+  loop: "{{ bgp_peer_groups }}"
+  register: results
+
+- name: Get BGP Groups Info
+  set_fact:
+    bgpPeerGroupsInfo: |-
+      {%- set bgpPeerGroupsWithAS = [] -%}
+      {%- for result in results.results -%}
+        {%- set parsing = (result.stdout[0] | parse_cli_textfsm('./textfsm/split_peer_as.textfsm'))[0] -%}
+        {%- set member = parsing.member -%}
+        {%- set peerAS = parsing.peerAS -%}
+        {%- for bgpPeerGroup in bgp_peer_groups -%}
+          {%- set groupName = bgpPeerGroup.groupName -%}
+          {%- set firstMember = bgpPeerGroup.members[0] -%}
+          {%- if member == firstMember -%}
+            {%- set bgpPeerGroupWithAS = {"groupName": groupName, "member": firstMember, "peerAS": peerAS} -%}
+            {%- set temp = bgpPeerGroupsWithAS.append(bgpPeerGroupWithAS) -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
+      {%- set bgpPeerGroupsInfo = [] -%}
+      {%- for bgpPeerGroup in bgpPeerGroupsWithAS -%}
+        {%- set groupName = bgpPeerGroup.groupName -%}
+        {%- set member = bgpPeerGroup.member -%}
+        {%- set peerAS = bgpPeerGroup.peerAS -%}
+        {%- set costingOut = [] -%}
+        {%- set costingIn = [] -%}
+        {%- set keyword = groupName.split("_TO_")[1] -%}
+        {%- for routeMap in route_maps -%}
+          {%- set mapName = routeMap.mapName -%}
+          {%- if "ADMIN" not in mapName -%}
+            {%- if keyword in mapName and "COSTOUT" in mapName -%}
+              {%- set temp = costingOut.append(mapName) -%}
+            {%- endif -%}
+            {%- if keyword in mapName and "COSTOUT" not in mapName -%}
+              {%- set temp = costingIn.append(mapName) -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set bgpPeerGroupInfo = {"groupName": groupName, "member": member, "peerAS": peerAS, "costingOut": costingOut, "costingIn": costingIn} -%}
+        {%- set temp = bgpPeerGroupsInfo.append(bgpPeerGroupInfo) -%}
+      {%- endfor -%}
+      {{- bgpPeerGroupsInfo -}}
+
+- name: Print BGP Peer Groups Info
+  debug:
+    var: bgpPeerGroupsInfo

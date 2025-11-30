@@ -1,0 +1,46 @@
+---
+- name: Get Uplinks Group
+  set_fact:
+    uplinksGroup: |-
+      {%- set groupIndex = namespace(value = 0) -%}
+      {%- for bgpGroup in bgp_groups -%}
+        {%- if "EG_SPINE" in bgpGroup.groupName -%}
+          {%- set groupIndex.value = loop.index0 -%}
+        {%- endif -%}
+        {%- if "FABRIC" in bgpGroup.groupName -%}
+          {%- set groupIndex.value = loop.index0 -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- set members = bgp_groups[groupIndex.value].members -%}
+      {%- set peers = [] -%}
+      {%- for member in members -%}
+        {%- set memberInfo = (member.description | parse_cli_textfsm("./textfsm/split_description.textfsm"))[0] -%}
+        {%- set deviceName = memberInfo.deviceName -%}
+        {%- set interfaceName = memberInfo.interfaceName -%}
+        {%- set peer = {"deviceName": deviceName, "interfaceName": interfaceName} -%}
+        {%- set temp = peers.append(peer) -%}
+      {%- endfor -%}
+      {%- set deviceNameList = [] -%}
+      {%- for peer in peers -%}
+        {%- set deviceName = peer.deviceName -%}
+        {%- if deviceName not in deviceNameList -%}
+          {%- set temp = deviceNameList.append(deviceName) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- set uplinks = [] -%}
+      {%- for deviceName in deviceNameList -%}
+        {%- set interfacesList = [] -%}
+        {%- for peer in peers -%}
+          {%- if deviceName == peer.deviceName -%}
+            {%- set temp = interfacesList.append(peer.interfaceName) -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set deviceInfo = {"deviceName": deviceName, "interfacesList": interfacesList} -%}
+        {%- set temp = uplinks.append(deviceInfo) -%}
+      {%- endfor -%}
+      {%- set uplinksGroup = {"groupName": bgp_groups[groupIndex.value].groupName, "uplinks": uplinks} -%}
+      {{- uplinksGroup -}}
+
+- name: Print Uplinks Group
+  debug:
+    var: uplinksGroup

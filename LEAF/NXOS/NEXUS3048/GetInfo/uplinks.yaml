@@ -1,0 +1,40 @@
+---
+- name: Run Command "show interface description | include L3"
+  nxos_command:
+    commands: show interface description | include L3
+  register: result
+
+- name: Get Uplinks
+  set_fact:
+    uplinks: |-
+      {%- set uplinksDescription = (result.stdout[0] | parse_cli_textfsm('./textfsm/extract_description.textfsm'))[0].description -%}
+      {%- set peers = [] -%}
+      {%- for description in uplinksDescription -%}
+        {%- set deviceName = (description | parse_cli_textfsm('./textfsm/split_description.textfsm'))[0].deviceName -%}
+        {%- set interfaceName = (description | parse_cli_textfsm('./textfsm/split_description.textfsm'))[0].interfaceName -%}
+        {%- set peer = {"deviceName": deviceName, "interfaceName": interfaceName} -%}
+        {%- set temp = peers.append(peer) -%}
+      {%- endfor -%}
+      {%- set deviceNameList = [] -%}
+      {%- for peer in peers -%}
+        {%- set deviceName = peer.deviceName -%}
+        {%- if deviceName not in deviceNameList -%}
+          {%- set temp = deviceNameList.append(deviceName) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- set uplinks = [] -%}
+      {%- for deviceName in deviceNameList -%}
+        {%- set interfacesList = [] -%}
+        {%- for peer in peers -%}
+          {%- if deviceName == peer.deviceName -%}
+            {%- set temp = interfacesList.append(peer.interfaceName) -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set deviceInfo = {"deviceName": deviceName, "interfacesList": interfacesList} -%}
+        {%- set temp = uplinks.append(deviceInfo) -%}
+      {%- endfor -%}
+      {{- uplinks -}}
+
+- name: Print Uplinks
+  debug:
+    var: uplinks

@@ -1,0 +1,13 @@
+{{- "# Back up the configuration of the device\n" -}}
+{{- "\n" -}}
+{{- "https://nseui.muse.vip.ebay.com/config-backup\n" | indent(8, True, False) -}}
+{{- "\n" -}}
+{{- ("Enter device name: " + inventory_hostname + " > Press Initiate Backup button\n") | indent(8, True, False) -}}
+{{- "\n" -}}
+{%- for uplinks in uplinksGroup.uplinks -%}
+    {%- set deviceName = uplinks.deviceName -%}
+    {{- ("Enter device name: " + deviceName + " > Press Initiate Backup button\n") | indent(8, True, False) -}}
+    {{- "\n" -}}
+{%- endfor -%}
+{{- "\n" -}}
+{{- "\n" -}}

@@ -1,0 +1,54 @@
+---
+- name: Get Device Info
+  hosts: switch_name
+  connection: network_cli
+  vars:
+    ansible_network_os: arista.eos.eos
+  vars_prompt:
+    - name: chg_number
+      prompt: "Please Enter the CHG number"
+      private: no
+
+  tasks:
+    - name: Determine If Current Device Is Supported
+      eos_command:
+        commands:
+        - "show version"
+      register: result
+
+    - name: Get Output
+      set_fact:
+        device_model: "{{ (result.stdout[0] | parse_cli_textfsm('./textfsm/device_model.textfsm'))[0].deviceModel }}"
+
+    - name: Print Device Model
+      debug:
+        var: device_model
+
+    - name: Unsupported Model
+      fail: 
+        msg: "Unsupported Model"
+      when: "'DCS-7260CX' not in device_model"
+
+    - name: Get BGP Peer Groups 
+      import_tasks: GetInfo/bgp_peer_groups.yaml
+
+    - name: Get Uplinks Group 
+      import_tasks: GetInfo/uplinks_group.yaml
+
+    - name: Generate Preparation Procedure
+      import_tasks: Procedure/preparation.yaml
+
+    - name: Generate Uplinks Management Procedure
+      import_tasks: Procedure/uplinks_management.yaml
+
+    - name: Get BGP Peer Groups Info 
+      import_tasks: GetInfo/bgp_peer_groups_info.yaml
+
+    - name: Generate Traffic Movement Procedure
+      import_tasks: Procedure/traffic_movement.yaml
+
+    - name: Generate Plans
+      import_tasks: Post/plans.yaml
+
+    - name: Post request
+      import_tasks: Post/request.yaml

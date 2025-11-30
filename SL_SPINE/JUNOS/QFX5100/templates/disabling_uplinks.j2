@@ -1,0 +1,53 @@
+{%- for uplinks in uplinksGroup.uplinks -%}
+  {%- set deviceName = uplinks.deviceName -%}
+  {%- set firstInterfaceName = uplinks.interfacesList[0] -%}
+  {%- if "xe" in firstInterfaceName or "et" in firstInterfaceName -%}
+    {%- if loop.index0 == 0 -%}
+      {{- "# On " + deviceName + ":\n" -}}
+    {%- else -%}
+      {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {%- endif -%}
+    {{- "\n" -}}
+    {{- "configure exclusive\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {%- for interface in uplinks.interfacesList -%}
+      {{- ("set interfaces " + interface + " disable\n") | indent(8, True, False) -}}
+    {%- endfor -%}
+    {{- "\n" -}}
+    {{- "show | compare\n" | indent(8, True, False) -}}
+    {{- "commit and-quit\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- "# Verify the interface status\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {%- for interface in uplinks.interfacesList -%}
+      {{- ("show interfaces " + interface + ' extensive | match "last|local|phy|desc|error | no-more\n') | indent(8, True, False) -}}
+    {%- endfor -%}
+  {%- else -%}
+    {%- if loop.index0 == 0 -%}
+      {{- ("# On " + deviceName + ":\n") -}}
+    {%- else -%}
+      {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {%- endif -%}
+    {{- "\n" -}}
+    {{- "configure terminal\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {%- for interface in uplinks.interfacesList -%}
+      {{- ("interface Ethernet" + interface + "\n") | indent(8, True, False) -}}
+      {{- "shutdown\n" | indent(8, True, False) -}}
+      {{- "\n" -}}
+    {%- endfor -%}
+    {{- "end\n" | indent(8, True, False) -}}
+    {{- "write memory\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- "# Verify the interface status\n" | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {%- for interface in uplinks.interfacesList -%}
+      {{- ("show interfaces Ethernet" + interface + "\n") | indent(8, True, False) -}}
+    {%- endfor -%}
+  {%- endif -%}
+  {{- "\n" -}}
+{%- endfor -%}

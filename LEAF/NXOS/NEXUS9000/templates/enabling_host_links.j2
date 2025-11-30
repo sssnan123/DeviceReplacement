@@ -1,0 +1,15 @@
+{{- "configure terminal\n" -}}
+{{- "\n" -}}
+{%- for hostLink in host_links -%}
+  {{- ("interface " + hostLink + "\n") | indent(8, True, False) -}}
+  {{- "no shutdown\n" | indent(8, True, False) -}}
+  {{- "\n" -}}
+{%- endfor -%}
+{{- ("# Verify host links status\n") | indent(8, True, False) -}}
+{{- "\n" -}}
+{{- ("# On " + inventory_hostname + ":\n") | indent(8, True, False) -}}
+{{- "\n" -}}
+{%- for hostLink in host_links -%}
+  {{- ("show interfaces " + hostLink  + "\n") | indent(8, True, False) -}}
+  {{- "\n" -}}
+{%- endfor -%}

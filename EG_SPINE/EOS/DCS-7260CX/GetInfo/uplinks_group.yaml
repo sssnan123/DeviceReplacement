@@ -1,0 +1,58 @@
+---
+- name: Get Uplinks Info
+  set_fact:
+    uplinksInfo: |-
+      {%- for bgpPeerGroup in bgp_peer_groups -%}
+        {%- set groupName = bgpPeerGroup.groupName -%}
+        {%- set members = bgpPeerGroup.members -%}
+        {%- if "AG_ROUTER" in groupName -%}
+          {%- set uplinksInfo = {"groupName": groupName, "members": members} -%}
+          {{- uplinksInfo -}}
+        {%- endif -%}
+      {%- endfor -%}
+
+- name: Print Uplinks Info
+  debug:
+    var: uplinksInfo
+
+- name: Run Command "show running-config | include 'IP Address' description"
+  eos_command:
+    commands: "{{ 'show running-config | include ' + item + ' description'}}"
+  loop: "{{ uplinksInfo.members }}"
+  register: results
+
+- name: Get Uplinks Group
+  set_fact:
+    uplinksGroup: |-
+      {%- set members = [] -%}
+      {%- for result in results.results -%}
+        {%- set description = (result.stdout[0] | parse_cli_textfsm("./textfsm/split_description.textfsm"))[0] -%}
+        {%- set deviceName = description.deviceName -%}
+        {%- set interfaceName = description.interfaceName -%}
+        {%- set memberInfo = {"deviceName": deviceName, "interfaceName": interfaceName} -%}
+        {%- set temp = members.append(memberInfo) -%}
+      {%- endfor -%}
+      {%- set deviceNameList = [] -%}
+      {%- for member in members -%}
+        {%- set deviceName = member.deviceName -%}
+        {%- if deviceName not in deviceNameList -%}
+          {%- set temp = deviceNameList.append(deviceName) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- set uplinks = [] -%}
+      {%- for deviceName in deviceNameList -%}
+        {%- set interfacesList = [] -%}
+        {%- for member in members -%}
+          {%- if deviceName == member.deviceName -%}
+            {%- set temp = interfacesList.append(member.interfaceName) -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set deviceInfo = {"deviceName": deviceName, "interfacesList": interfacesList} -%}
+        {%- set temp = uplinks.append(deviceInfo) -%}
+      {%- endfor -%}
+      {%- set uplinksGroup = {"groupName": uplinksInfo.groupName, "uplinks": uplinks} -%}
+      {{- uplinksGroup -}}
+
+- name: Print Uplinks Group
+  debug:
+    var: uplinksGroup

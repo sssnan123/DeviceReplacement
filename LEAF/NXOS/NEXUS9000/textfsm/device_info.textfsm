@@ -1,0 +1,11 @@
+Value osVersion (.+)
+Value deviceModel (.+)
+
+Start
+  ^Software
+  ^\s+BIOS\:\s+version\s+.+
+  ^\s+NXOS\:\s+version\s+${osVersion}
+  ^BIOS\s+compile\s+time\:.+
+  ^NXOS\s+image\s+file\s+is\:.+
+  ^Hardware
+  ^\s+cisco\s+${deviceModel}\s+Chassis

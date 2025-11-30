@@ -1,0 +1,5 @@
+Value deviceName ([a-z]{3}\d{2}\-[a-z]{2}\d{2,3})
+Value interfaceName (.+)
+
+Start
+  ^L3\-${deviceName}\:${interfaceName}

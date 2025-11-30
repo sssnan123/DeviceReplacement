@@ -1,0 +1,65 @@
+{{- "# On " + inventory_hostname + ":\n" -}}
+{{- "\n" -}}
+{{- "show version invoke-on all-routing-engines | no-more\n" | indent(8, True, False) -}}
+{{- "show log messages | last 100 | no-more\n" | indent(8, True, False) -}}
+{{- "show chassis alarms | no-more\n" | indent(8, True, False) -}}
+{{- "show configuration | display set | no-more\n" | indent(8, True, False) -}}
+{{- "show chassis fpc | no-more\n" | indent(8, True, False) -}}
+{{- "show chassis routing-engine | no-more\n" | indent(8, True, False) -}}
+{{- "show chassis hardware clei-models | no-more\n" | indent(8, True, False) -}}
+{{- "show interfaces terse | no-more\n" | indent(8, True, False) -}}
+{{- "show lldp neighbors | no-more\n" | indent(8, True, False) -}}
+{{- "show lldp neighbors | count\n" | indent(8, True, False) -}}
+{{- "show route summary | no-more\n" | indent(8, True, False) -}}
+{{- "show bgp summary | no-more\n" | indent(8, True, False) -}}
+{{- "show bgp summary | count | no-more\n" | indent(8, True, False) -}}
+{{- "show vlans | no-more\n" | indent(8, True, False) -}}
+{{- "show vrrp brief | no-more\n" | indent(8, True, False) -}}
+{{- "show spanning-tree interface brief | no-more\n" | indent(8, True, False) -}}
+{{- "show arp | no-more\n" | indent(8, True, False) -}}
+{%- for uplinks in uplinksGroup.uplinks -%}
+  {%- set deviceName = uplinks.deviceName -%}
+  {%- set firstInterfaceName = uplinks.interfacesList[0] -%}
+  {{- "\n" -}}
+  {%- if "xe" in firstInterfaceName or "et" in firstInterfaceName -%}
+    {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- "show version invoke-on all-routing-engines | no-more\n" | indent(8, True, False) -}}
+    {{- "show log messages | last 100 | no-more\n" | indent(8, True, False) -}}
+    {{- "show chassis alarms | no-more\n" | indent(8, True, False) -}}
+    {{- "show configuration | display set | no-more\n" | indent(8, True, False) -}}
+    {{- "show chassis fpc | no-more\n" | indent(8, True, False) -}}
+    {{- "show chassis routing-engine | no-more\n" | indent(8, True, False) -}}
+    {{- "show chassis hardware clei-models | no-more\n" | indent(8, True, False) -}}
+    {{- "show interfaces terse | no-more\n" | indent(8, True, False) -}}
+    {{- "show lldp neighbors | no-more\n" | indent(8, True, False) -}}
+    {{- "show lldp neighbors | count\n" | indent(8, True, False) -}}
+    {{- "show route summary | no-more\n" | indent(8, True, False) -}}
+    {{- "show bgp summary | no-more\n" | indent(8, True, False) -}}
+    {{- "show bgp summary | count | no-more\n" | indent(8, True, False) -}}
+    {{- "show vlans | no-more\n" | indent(8, True, False) -}}
+    {{- "show vrrp brief | no-more\n" | indent(8, True, False) -}}
+    {{- "show spanning-tree interface brief | no-more\n" | indent(8, True, False) -}}
+    {{- "show arp | no-more\n" | indent(8, True, False) -}}
+  {%- else -%}
+    {{- ("# On " + deviceName + ":\n") | indent(8, True, False) -}}
+    {{- "\n" -}}
+    {{- "show version | no-more\n" | indent(8, True, False) -}}
+    {{- "show logging 100 | no-more\n" | indent(8, True, False) -}}
+    {{- "show module | no-more\n" | indent(8, True, False) -}}
+    {{- "show environment all | no-more\n" | indent(8, True, False) -}}
+    {{- "show processes top\n" | indent(8, True, False) -}}
+    {{- "show lldp neighbors | no-more\n" | indent(8, True, False) -}}
+    {{- "show interfaces status | include connected | no-more\n" | indent(8, True, False) -}}
+    {{- "show interfaces status | include notconnect | no-more\n" | indent(8, True, False) -}}
+    {{- "show interfaces status | include disabled | no-more\n" | indent(8, True, False) -}}
+    {{- "show interfaces status | no-more | exclude disabled | TRANS | TRUNK | notconn | unknown\n" | indent(8, True, False) -}}
+    {{- "show port-channel summary\n" | indent(8, True, False) -}}
+    {{- "show spanning-tree detail\n" | indent(8, True, False) -}}
+    {{- "show ip route summary | no-more\n" | indent(8, True, False) -}}
+    {{- "show ipv6 route summary | no-more\n" | indent(8, True, False) -}}
+    {{- "show ip bgp summary | no-more\n" | indent(8, True, False) -}}
+    {{- "show ipv6 bgp summary | no-more\n" | indent(8, True, False) -}}
+  {%- endif -%}
+{%- endfor -%}
+{{- "\n" -}}
